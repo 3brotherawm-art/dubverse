@@ -49,6 +49,29 @@
   .step3 span{color:var(--mut);font-size:12.5px;line-height:1.45}
   .feats{max-width:1060px;margin:14px auto 0;padding:0 26px;display:flex;flex-wrap:wrap;gap:9px}
   .feat{background:#120c2c;border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--txt)}
+  .authbtn{padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:#120c2c;color:var(--txt);cursor:pointer;font-size:13.5px}
+  .authbtn:hover{border-color:var(--acc)}
+  .authbtn.primary{background:linear-gradient(135deg,var(--acc),#5a3ee0);border-color:transparent;font-weight:600;color:#fff}
+  .userchip{display:flex;align-items:center;gap:9px;font-size:13.5px}
+  .badge{padding:2px 10px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.4px}
+  .badge.free{background:#2a2350;color:var(--mut)}
+  .badge.pro{background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff}
+  .authcard{max-width:1060px;margin:14px auto 0;padding:0 26px}
+  .authcard .card{max-width:430px}
+  .authcard input{width:100%;padding:11px 12px;border-radius:10px;background:#120c2c;color:var(--txt);border:1px solid var(--line);font-size:14.5px;margin-bottom:10px}
+  .plans{max-width:1060px;margin:20px auto 0;padding:0 26px}
+  .plans h2{font-size:20px;margin:0 0 4px}
+  .plangrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  @media(max-width:820px){.plangrid{grid-template-columns:1fr}}
+  .plan{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center}
+  .plan.hot{border-color:#f59e0b;box-shadow:0 10px 30px rgba(245,158,11,.18)}
+  .plan .pl{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+  .plan .pr{font-size:30px;font-weight:800;margin:8px 0 2px}
+  .plan .mrp{color:var(--mut);text-decoration:line-through;font-size:14px}
+  .plan .off{display:inline-block;margin-top:6px;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:3px 11px}
+  .paybox{max-width:1060px;margin:16px auto 0;padding:0 26px}
+  .paybox .card{text-align:center}
+  .wa{display:inline-block;margin-top:12px;background:#22c55e;color:#fff;font-weight:700;padding:13px 26px;border-radius:12px;text-decoration:none;font-size:15.5px}
   .hidden{display:none}
 </style>
 </head>
@@ -59,7 +82,19 @@
     <h1>__BRAND__<span>.</span></h1>
     <div class="tag">Dub any video into any language — voice matched to the speaker</div>
   </div>
+  <div id="authArea" style="margin-left:auto"></div>
 </header>
+<div class="authcard hidden" id="authCard">
+  <div class="card">
+    <h2 id="authTitle">Login</h2>
+    <input id="authName" placeholder="Full name (sirf Sign Up par)" class="hidden">
+    <input id="authEmail" type="email" placeholder="Email">
+    <input id="authPass" type="password" placeholder="Password (kam az kam 6 characters)">
+    <button class="go" id="authGo" style="margin-top:4px">Login</button>
+    <div class="mut" id="authMsg" style="margin-top:10px"></div>
+    <div class="mut" style="margin-top:8px"><a href="#" id="authSwitch" style="color:var(--acc2)">Account nahi hai? Sign Up karo</a></div>
+  </div>
+</div>
 <div class="strip">
   <div class="step3"><div class="n">1</div><div><b>Video upload karo</b><span>Koi bhi video — MP4, MOV, MKV ya audio file select karo.</span></div></div>
   <div class="step3"><div class="n">2</div><div><b>Language chuno</b><span>40+ languages me translate — dubbing voice speaker se match hogi: ladka bole to male, ladki bole to female.</span></div></div>
@@ -114,6 +149,20 @@
     <div class="log" id="log">Job log yahan ayega…</div>
   </section>
 </main>
+<section class="plans">
+  <h2>⭐ Pro Plans — Full Quality</h2>
+  <div class="mut">Free plan: download quality <b style="color:var(--txt)">1080p tak</b> &nbsp;•&nbsp; Pro plan: <b style="color:var(--txt)">full original quality — 4K / 8K / 16K tak</b> (video jitni quality ki hogi, Pro me utni hi milegi, koi cap nahi)</div>
+  <div class="plangrid" id="planGrid"></div>
+</section>
+<div class="paybox">
+  <div class="card">
+    <h2 style="margin:0 0 6px">Pro kese milega?</h2>
+    <div style="font-size:14.5px;line-height:1.6">1️⃣ Pehle upar se <b>Sign Up</b> karke apna account banao — tumhe aik <b>ID</b> milegi<br>
+    2️⃣ Easypaisa par payment bhejo: <b id="epNum" style="color:var(--acc2)">—</b><br>
+    3️⃣ Payment ka <b>screenshot WhatsApp</b> par bhejo (apni ID ke sath) — Pro foran active kar diya jayega ✅</div>
+    <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp par Screenshot bhejo</a>
+  </div>
+</div>
 <footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices &nbsp;•&nbsp; <a href="/admin">Admin Panel</a></footer>
 <script>
 const $=s=>document.querySelector(s);
@@ -191,6 +240,64 @@ function showResult(j){
     const p=$('#player'); p.src='/api/jobs/'+jobId+'/files/video_dubbed.mp4'; p.classList.remove('hidden');
   }
 }
+// ---------- accounts + pricing ----------
+let me=null, authMode='login', cfg=null;
+fetch('/api/config').then(r=>r.json()).then(c=>{
+  cfg=c;
+  $('#epNum').textContent=c.easypaisa||'';
+  const grid=$('#planGrid'); grid.innerHTML='';
+  (c.plans||[]).forEach((p,i)=>{
+    const off=p.mrp>p.price?Math.round((1-p.price/p.mrp)*100):0;
+    const d=document.createElement('div'); d.className='plan'+(i===2?' hot':'');
+    d.innerHTML='<div class="pl">'+p.label+'</div><div class="pr">Rs '+p.price+'</div>'+
+      (p.mrp>p.price?'<div class="mrp">Rs '+p.mrp+'</div><span class="off">'+off+'% OFF</span>':'<div class="mut">Best for try karne ke liye</div>')+
+      '<div class="mut" style="margin-top:10px">Full quality • 4K / 8K / 16K tak • No cap</div>';
+    grid.appendChild(d);
+  });
+  updWa();
+});
+function updWa(){
+  if(!cfg)return;
+  const msg='Assalam o Alaikum! Maine DubVerse PRO ke liye Easypaisa payment kar di hai. Screenshot bhej raha hoon.'+(me?(' Meri ID: '+me.id):'');
+  $('#waBtn').href='https://wa.me/'+cfg.whatsapp+'?text='+encodeURIComponent(msg);
+}
+async function loadMe(){
+  const r=await fetch('/api/me'); const d=await r.json(); me=d.user; renderAuth(); updWa();
+}
+function renderAuth(){
+  const a=$('#authArea');
+  if(me){
+    a.innerHTML='<div class="userchip"><span>👋 '+me.name+'</span><span class="badge '+me.plan+'">'+me.plan.toUpperCase()+'</span><span class="mut">'+me.id+'</span><button class="authbtn" id="logoutBtn">Logout</button></div>';
+    $('#logoutBtn').onclick=async()=>{await fetch('/api/logout',{method:'POST'}); me=null; renderAuth(); updWa();};
+  }else{
+    a.innerHTML='<button class="authbtn" id="loginBtn">Login</button> <button class="authbtn primary" id="signupBtn">Sign Up — Free</button>';
+    $('#loginBtn').onclick=()=>showAuth('login');
+    $('#signupBtn').onclick=()=>showAuth('register');
+  }
+}
+function showAuth(mode){
+  authMode=mode;
+  $('#authCard').classList.remove('hidden');
+  $('#authName').classList.toggle('hidden', mode==='login');
+  $('#authTitle').textContent= mode==='login'?'Login':'Sign Up — apna account banao';
+  $('#authGo').textContent= mode==='login'?'Login':'Sign Up';
+  $('#authSwitch').textContent= mode==='login'?'Account nahi hai? Sign Up karo':'Pehle se account hai? Login karo';
+  $('#authCard').scrollIntoView({behavior:'smooth',block:'center'});
+}
+$('#authSwitch').onclick=e=>{e.preventDefault(); showAuth(authMode==='login'?'register':'login');};
+$('#authGo').onclick=async()=>{
+  const fd=new FormData();
+  if(authMode==='register') fd.append('name',$('#authName').value);
+  fd.append('email',$('#authEmail').value);
+  fd.append('password',$('#authPass').value);
+  const r=await fetch(authMode==='login'?'/api/login':'/api/register',{method:'POST',body:fd});
+  const d=await r.json();
+  if(!r.ok){$('#authMsg').innerHTML='<span class="err">'+(d.detail||'Error')+'</span>'; return}
+  me=d.user; $('#authCard').classList.add('hidden'); renderAuth(); updWa();
+  $('#authMsg').textContent='';
+  alert('Welcome '+me.name+'! Tumhari ID: '+me.id+' — Pro ke liye ye ID lazmi note kar lo.');
+};
+loadMe(); renderAuth();
 </script>
 </body>
 </html>
