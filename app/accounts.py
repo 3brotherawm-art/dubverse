@@ -32,7 +32,8 @@ FREE_MAX_HEIGHT = 1080
 
 
 def whatsapp_number():
-    return os.environ.get("WHATSAPP_NUMBER", "923247677476")
+    # Owner's business number (also his Easypaisa number): 0303-9929254
+    return os.environ.get("WHATSAPP_NUMBER", "923039929254")
 
 
 def easypaisa_number():
