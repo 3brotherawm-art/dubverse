@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__BRAND__ — Video Translator & AI Dubbing</title>
+<style>
+  :root{--bg:#0b0620;--panel:#171233;--panel2:#1f1845;--line:#2e2560;--txt:#f2efff;--mut:#a79fd0;--acc:#7c5cff;--acc2:#22d3ee;--ok:#34d399;--err:#f87171}
+  *{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(1100px 550px at 85% -10%,#3b2a86 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#0e3a4a 0%,transparent 55%),var(--bg);color:var(--txt);min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:20px 26px;max-width:1060px;margin:0 auto}
+  .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(124,92,255,.45)}
+  h1{font-size:26px;margin:0;letter-spacing:.3px}h1 span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{color:var(--mut);font-size:13px;margin-top:2px}
+  main{max-width:1060px;margin:0 auto;padding:6px 26px 46px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){main{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:20px}
+  .card h2{margin:0 0 14px;font-size:17px}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:26px 14px;text-align:center;color:var(--mut);cursor:pointer;transition:.2s}
+  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(124,92,255,.08)}
+  .drop b{color:var(--txt);display:block;font-size:15px;margin-bottom:4px}
+  label{display:block;font-size:12.5px;color:var(--mut);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.6px}
+  select{width:100%;padding:11px 12px;border-radius:10px;background:#120c2c;color:var(--txt);border:1px solid var(--line);font-size:14.5px}
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:#120c2c;color:var(--mut);cursor:pointer;font-size:13.5px}
+  .seg button.on{background:linear-gradient(135deg,var(--acc),#5a3ee0);color:#fff;border-color:transparent;font-weight:600}
+  .chk{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:14px;color:var(--txt);cursor:pointer}
+  .chk input{width:17px;height:17px;accent-color:var(--acc)}
+  .go{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 10px 26px rgba(124,92,255,.35)}
+  .go:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+  .bar{height:10px;background:#120c2c;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s}
+  .step{font-size:14px;margin:10px 0 4px}.mut{color:var(--mut);font-size:12.5px}
+  .log{background:#0d0924;border:1px solid var(--line);border-radius:10px;padding:10px 12px;height:110px;overflow:auto;font:12px/1.55 Consolas,monospace;color:#c9c2f5;margin-top:12px;white-space:pre-wrap}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .chip{background:#120c2c;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;color:var(--mut)}
+  .chip b{color:var(--txt)}
+  video{width:100%;border-radius:12px;background:#000;margin-top:6px}
+  .dl{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+  .dl a{display:block;text-align:center;padding:11px 8px;border-radius:10px;background:#120c2c;border:1px solid var(--line);color:var(--txt);text-decoration:none;font-size:13.5px}
+  .dl a:hover{border-color:var(--acc)}
+  .dl a.zip{grid-column:1/-1;background:linear-gradient(90deg,var(--acc),var(--acc2));font-weight:700;border:0}
+  .err{color:var(--err)}footer{max-width:1060px;margin:0 auto;padding:0 26px 30px;color:var(--mut);font-size:12.5px;text-align:center}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎙️</div>
+  <div>
+    <h1>__BRAND__<span>.</span></h1>
+    <div class="tag">Dub any video into any language — voice matched to the speaker</div>
+  </div>
+</header>
+<main>
+  <section class="card">
+    <h2>1 — Video upload karo</h2>
+    <div class="drop" id="drop">
+      <b>📁 Video file yahan drop karo ya click karke select karo</b>
+      MP4, MOV, MKV, WEBM, AVI ya audio file — max <span id="maxmb">500</span> MB
+      <div id="fname" style="margin-top:8px;color:var(--acc2)"></div>
+    </div>
+    <input type="file" id="file" accept="video/*,audio/*,.mkv" class="hidden">
+
+    <label>Video ki language (source)</label>
+    <select id="source"><option value="auto">Auto Detect</option></select>
+
+    <label>Translate / Dub kis language me?</label>
+    <select id="target"></select>
+
+    <label>Dubbing voice — jo bolega, waisi awaz</label>
+    <div class="seg" id="voiceSeg">
+      <button data-v="auto" class="on">Auto Match 🎯</button>
+      <button data-v="male">Male 👨</button>
+      <button data-v="female">Female 👩</button>
+    </div>
+
+    <label class="chk"><input type="checkbox" id="makeDub" checked> Dubbed video banana hai (AI voice)</label>
+    <label class="chk"><input type="checkbox" id="makeSubs" checked> Subtitled video bhi (translated subtitles)</label>
+    <label class="chk"><input type="checkbox" id="bgOrig"> Original awaz halki si background me rakho</label>
+
+    <button class="go" id="go">🚀 Start Dubbing</button>
+    <div class="mut" style="margin-top:10px">Processing time video ki length par depend karta hai. Page band mat karna jab tak job complete na ho.</div>
+  </section>
+
+  <section class="card">
+    <h2>2 — Progress & Download</h2>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="step" id="stepText">Abhi koi job nahi chala</div>
+    <div class="mut" id="jobMeta"></div>
+    <div class="chips" id="chips"></div>
+    <video id="player" controls class="hidden"></video>
+    <div class="dl" id="downloads"></div>
+    <div class="log" id="log">Job log yahan ayega…</div>
+  </section>
+</main>
+<footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices</footer>
+<script>
+const $=s=>document.querySelector(s);
+let fileObj=null, voiceMode='auto', jobId=null, timer=null;
+fetch('/api/config').then(r=>r.json()).then(c=>{
+  document.getElementById('maxmb').textContent=c.max_upload_mb;
+  const src=$('#source'), tgt=$('#target');
+  c.languages.forEach(l=>{
+    src.add(new Option(l.name+' ('+l.code+')', l.code));
+    const o=new Option(l.name+' ('+l.code+')'+(l.dubbing?'':' — subtitles only'), l.code);
+    tgt.add(o);
+  });
+  tgt.value='ur';
+});
+const drop=$('#drop'), fileIn=$('#file');
+drop.onclick=()=>fileIn.click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');setFile(e.dataTransfer.files[0])};
+fileIn.onchange=()=>setFile(fileIn.files[0]);
+function setFile(f){ if(!f)return; fileObj=f; $('#fname').textContent='✔ '+f.name+' ('+(f.size/1048576).toFixed(1)+' MB)'; }
+document.querySelectorAll('#voiceSeg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#voiceSeg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); voiceMode=b.dataset.v;
+});
+$('#go').onclick=async()=>{
+  if(!fileObj){alert('Pehle video file select karo');return}
+  const fd=new FormData();
+  fd.append('file',fileObj);
+  fd.append('source_lang',$('#source').value);
+  fd.append('target_lang',$('#target').value);
+  fd.append('voice_mode',voiceMode);
+  fd.append('make_dub',$('#makeDub').checked);
+  fd.append('make_subs',$('#makeSubs').checked);
+  fd.append('bg_original',$('#bgOrig').checked);
+  $('#go').disabled=true; $('#downloads').innerHTML=''; $('#chips').innerHTML='';
+  $('#player').classList.add('hidden'); $('#log').textContent='Upload ho raha hai…';
+  const r=await fetch('/api/jobs',{method:'POST',body:fd});
+  const data=await r.json();
+  if(!r.ok){$('#stepText').innerHTML='<span class="err">'+(data.detail||'Error')+'</span>';$('#go').disabled=false;return}
+  jobId=data.job_id; $('#jobMeta').textContent='Job ID: '+jobId;
+  clearInterval(timer); timer=setInterval(poll,2000); poll();
+};
+async function poll(){
+  const r=await fetch('/api/jobs/'+jobId); if(!r.ok)return;
+  const j=await r.json();
+  $('#barFill').style.width=(j.progress||0)+'%';
+  $('#stepText').textContent=j.step||j.status;
+  if(j.logs&&j.logs.length)$('#log').textContent=j.logs.join('\n');
+  if(j.status==='done'){clearInterval(timer);$('#go').disabled=false;showResult(j)}
+  if(j.status==='error'){clearInterval(timer);$('#go').disabled=false;
+    $('#stepText').innerHTML='<span class="err">Error: '+(j.error||'unknown')+'</span>'}
+}
+function chip(k,v){return '<span class="chip">'+k+': <b>'+v+'</b></span>'}
+function showResult(j){
+  const m=j.meta||{};
+  $('#chips').innerHTML=
+    chip('Language', m.detected_language||'-')+
+    chip('Speaker', (m.speaker_gender||'-')+(m.speaker_f0_hz?' ('+m.speaker_f0_hz+' Hz)':''))+
+    chip('Voice', m.voice_gender||'-')+
+    chip('Translation', (m.translation_providers||[]).join(', ')||'-')+
+    chip('TTS', (m.tts_engines||[]).join(', ')||'-');
+  const dl=$('#downloads'); dl.innerHTML='';
+  const order=['video_dubbed.mp4','video_subtitled.mp4','dubbed_audio.mp3','subtitles_translated.srt','subtitles_original.srt','transcript.txt','dubverse_output.zip'];
+  order.forEach(name=>{
+    if(j.outputs&&j.outputs[name]){
+      const a=document.createElement('a');
+      a.href='/api/jobs/'+jobId+'/files/'+name+'?download=1';
+      a.textContent=(name==='dubverse_output.zip'?'⬇ ':'')+j.outputs[name];
+      if(name==='dubverse_output.zip')a.className='zip';
+      dl.appendChild(a);
+    }
+  });
+  if(j.outputs&&j.outputs['video_dubbed.mp4']){
+    const p=$('#player'); p.src='/api/jobs/'+jobId+'/files/video_dubbed.mp4'; p.classList.remove('hidden');
+  }
+}
+</script>
+</body>
+</html>
