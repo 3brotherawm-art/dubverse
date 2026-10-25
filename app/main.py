@@ -6,7 +6,7 @@ import threading
 import uuid
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 
 from . import accounts
 from .admin import record_view, register_admin
@@ -114,6 +114,71 @@ def api_logout():
 @app.get("/api/me")
 def api_me(request: Request):
     return {"user": accounts.public_user(accounts.user_by_token(request))}
+
+
+# ------------------------------------------------------------- Google login
+GOOGLE_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+BASE_URL = os.environ.get("BASE_URL", "").rstrip("/")
+
+
+def _redirect_uri(request: Request):
+    if BASE_URL:
+        return BASE_URL + "/auth/google/callback"
+    return str(request.base_url).rstrip("/") + "/auth/google/callback"
+
+
+@app.get("/auth/google")
+def google_login(request: Request):
+    if not GOOGLE_ID or not GOOGLE_SECRET:
+        return HTMLResponse(
+            f"<body style='background:#0a0618;color:#e7e4ff;font-family:system-ui;"
+            f"display:flex;align-items:center;justify-content:center;height:100vh'>"
+            f"<div style='text-align:center'><h2>🎙️ {BRAND}</h2>"
+            f"<p>Google login ka setup abhi baqi hai (site live hote hi chalu ho jayega).<br>"
+            f"Filhal email wala login istemal karo.</p>"
+            f"<p><a href='/' style='color:#38e1ff'>← Wapas home</a></p></div></body>")
+    import secrets as _secrets
+    from urllib.parse import urlencode
+    state = _secrets.token_urlsafe(16)
+    params = urlencode({
+        "client_id": GOOGLE_ID,
+        "redirect_uri": _redirect_uri(request),
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "prompt": "select_account",
+    })
+    resp = RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + params)
+    resp.set_cookie("dv_gstate", state, max_age=600, httponly=True, samesite="lax")
+    return resp
+
+
+@app.get("/auth/google/callback")
+def google_callback(request: Request, code: str = "", state: str = ""):
+    import requests as _rq
+    if not code or not GOOGLE_ID or not GOOGLE_SECRET:
+        raise HTTPException(400, "Google login fail — code nahi mila")
+    if state != request.cookies.get("dv_gstate", ""):
+        raise HTTPException(400, "Google login fail — state mismatch")
+    tok = _rq.post("https://oauth2.googleapis.com/token", data={
+        "code": code, "client_id": GOOGLE_ID, "client_secret": GOOGLE_SECRET,
+        "redirect_uri": _redirect_uri(request), "grant_type": "authorization_code",
+    }, timeout=20).json()
+    access = tok.get("access_token")
+    if not access:
+        raise HTTPException(400, "Google login fail — token nahi mila")
+    info = _rq.get("https://openidconnect.googleapis.com/v1/userinfo",
+                   headers={"Authorization": f"Bearer {access}"}, timeout=20).json()
+    email = info.get("email")
+    if not email:
+        raise HTTPException(400, "Google login fail — email nahi mili")
+    user = accounts.register_oauth(info.get("name", ""), email)
+    resp = RedirectResponse("/", status_code=303)
+    resp.set_cookie("dv_user", accounts.session_token(user),
+                    max_age=30 * 24 * 3600, httponly=True, samesite="lax")
+    resp.delete_cookie("dv_gstate")
+    return resp
 
 
 @app.post("/api/jobs")

@@ -99,6 +99,35 @@ def register(name, email, password):
         return user, None
 
 
+def register_oauth(name, email):
+    """Find the account for this email or create one for Google sign-in.
+    Google accounts get a random unusable password — they always log in
+    via Google. If the email already registered with a password, the same
+    account is linked (no duplicate)."""
+    email = (email or "").strip().lower()
+    name = (name or "").strip() or email.split("@")[0]
+    with _lock:
+        users = _load()
+        for u in users:
+            if u["email"] == email:
+                return u
+        salt = uuid.uuid4().hex[:16]
+        user = {
+            "id": "DV-" + uuid.uuid4().hex[:6].upper(),
+            "name": name,
+            "email": email,
+            "salt": salt,
+            "pass_hash": _hash(uuid.uuid4().hex, salt),
+            "plan": "free",
+            "pro_until": None,
+            "created": int(time.time()),
+            "provider": "google",
+        }
+        users.append(user)
+        _save()
+        return user
+
+
 def verify(email, password):
     email = (email or "").strip().lower()
     with _lock:
