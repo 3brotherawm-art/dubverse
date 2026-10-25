@@ -72,6 +72,8 @@
   .paybox{max-width:1060px;margin:16px auto 0;padding:0 26px}
   .paybox .card{text-align:center}
   .wa{display:inline-block;margin-top:12px;background:#22c55e;color:#fff;font-weight:700;padding:13px 26px;border-radius:12px;text-decoration:none;font-size:15.5px}
+  .upg{margin-top:14px;width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-weight:700;font-size:14.5px;cursor:pointer}
+  .upg:hover{filter:brightness(1.1)}
   .hidden{display:none}
 </style>
 </head>
@@ -108,6 +110,25 @@
   <span class="feat">🎬 Original Video Untouched</span>
   <span class="feat">📝 Subtitles Included</span>
   <span class="feat">⚡ Fast Download</span>
+</div>
+<section class="plans">
+  <h2>⭐ Pro Plans — Full Quality</h2>
+  <div class="mut">Free plan: download quality <b style="color:var(--txt)">1080p tak</b> &nbsp;•&nbsp; Pro plan: <b style="color:var(--txt)">full original quality — 4K / 8K / 16K tak</b> (video jitni quality ki hogi, Pro me utni hi milegi, koi cap nahi)</div>
+  <div class="plangrid" id="planGrid"></div>
+</section>
+<div class="paybox" id="payBox">
+  <div class="card">
+    <h2 style="margin:0 0 8px">💳 Payment — Easypaisa</h2>
+    <div style="font-size:15px;line-height:1.75">
+      Selected plan: <b id="payPlan">upar kisi plan par "Upgrade" dabao</b><br>
+      Easypaisa number: <b id="epNum" style="color:var(--acc2);font-size:19px">—</b>
+      <button class="authbtn" id="copyEp" style="padding:5px 12px;font-size:12.5px">📋 Copy</button><br>
+      Tumhari ID: <b id="myId" style="color:var(--acc2)">(pehle Login / Sign Up karo)</b>
+      <button class="authbtn hidden" id="copyId" style="padding:5px 12px;font-size:12.5px">📋 Copy ID</button>
+    </div>
+    <div class="mut" style="margin-top:10px">Steps: 1️⃣ Plan select karo &nbsp;2️⃣ Easypaisa par payment bhejo &nbsp;3️⃣ Screenshot + apni ID WhatsApp par bhejo — Pro foran active ho jayega ✅</div>
+    <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp par Screenshot + ID bhejo</a>
+  </div>
 </div>
 <main>
   <section class="card">
@@ -151,20 +172,6 @@
     <div class="log" id="log">Job log yahan ayega…</div>
   </section>
 </main>
-<section class="plans">
-  <h2>⭐ Pro Plans — Full Quality</h2>
-  <div class="mut">Free plan: download quality <b style="color:var(--txt)">1080p tak</b> &nbsp;•&nbsp; Pro plan: <b style="color:var(--txt)">full original quality — 4K / 8K / 16K tak</b> (video jitni quality ki hogi, Pro me utni hi milegi, koi cap nahi)</div>
-  <div class="plangrid" id="planGrid"></div>
-</section>
-<div class="paybox">
-  <div class="card">
-    <h2 style="margin:0 0 6px">Pro kese milega?</h2>
-    <div style="font-size:14.5px;line-height:1.6">1️⃣ Pehle upar se <b>Sign Up</b> karke apna account banao — tumhe aik <b>ID</b> milegi<br>
-    2️⃣ Easypaisa par payment bhejo: <b id="epNum" style="color:var(--acc2)">—</b><br>
-    3️⃣ Payment ka <b>screenshot WhatsApp</b> par bhejo (apni ID ke sath) — Pro foran active kar diya jayega ✅</div>
-    <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp par Screenshot bhejo</a>
-  </div>
-</div>
 <footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices &nbsp;•&nbsp; <a href="/admin">Admin Panel</a></footer>
 <script>
 const $=s=>document.querySelector(s);
@@ -243,7 +250,7 @@ function showResult(j){
   }
 }
 // ---------- accounts + pricing ----------
-let me=null, authMode='login', cfg=null;
+let me=null, authMode='login', cfg=null, selPlan=null;
 fetch('/api/config').then(r=>r.json()).then(c=>{
   cfg=c;
   $('#epNum').textContent=c.easypaisa||'';
@@ -253,15 +260,43 @@ fetch('/api/config').then(r=>r.json()).then(c=>{
     const d=document.createElement('div'); d.className='plan'+(i===2?' hot':'');
     d.innerHTML='<div class="pl">'+p.label+'</div><div class="pr">Rs '+p.price+'</div>'+
       (p.mrp>p.price?'<div class="mrp">Rs '+p.mrp+'</div><span class="off">'+off+'% OFF</span>':'<div class="mut">Best for try karne ke liye</div>')+
-      '<div class="mut" style="margin-top:10px">Full quality • 4K / 8K / 16K tak • No cap</div>';
+      '<div class="mut" style="margin-top:10px">Full quality • 4K / 8K / 16K tak • No cap</div>'+
+      '<button class="upg">⭐ Upgrade — '+p.label+'</button>';
+    d.querySelector('.upg').onclick=()=>selectPlan(p);
     grid.appendChild(d);
   });
   updWa();
 });
+function selectPlan(p){
+  selPlan=p;
+  if(!me){
+    showAuth('register');
+    $('#authMsg').textContent='Pro ke liye pehle apna account banao (Google ya email se) — ID milte hi wapas aa kar isi plan par Upgrade dabana.';
+    return;
+  }
+  $('#payPlan').textContent=p.label+' — Rs '+p.price;
+  updWa();
+  $('#payBox').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function copyText(t, btn){
+  const done=()=>{const o=btn.textContent; btn.textContent='✔ Copied'; setTimeout(()=>btn.textContent=o,1500)};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(done)}
+  else{const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy')}catch(e){} ta.remove(); done()}
+}
+$('#copyEp').onclick=e=>{if(cfg)copyText(cfg.easypaisa, e.target)};
+$('#copyId').onclick=e=>{if(me)copyText(me.id, e.target)};
+function updId(){
+  const el=$('#myId'), btn=$('#copyId');
+  if(me){el.textContent=me.id; btn.classList.remove('hidden')}
+  else{el.textContent='(pehle Login / Sign Up karo)'; btn.classList.add('hidden')}
+}
 function updWa(){
   if(!cfg)return;
-  const msg='Assalam o Alaikum! Maine DubVerse PRO ke liye Easypaisa payment kar di hai. Screenshot bhej raha hoon.'+(me?(' Meri ID: '+me.id):'');
+  let msg='Assalam o Alaikum! Main DubVerse PRO lena chahta hoon. ';
+  if(selPlan)msg+='Plan: '+selPlan.label+' (Rs '+selPlan.price+'). ';
+  msg+='Maine Easypaisa par payment kar di hai, screenshot bhej raha hoon. '+(me?('Meri ID: '+me.id):'(Meri ID: abhi login nahi kiya)');
   $('#waBtn').href='https://wa.me/'+cfg.whatsapp+'?text='+encodeURIComponent(msg);
+  updId();
 }
 async function loadMe(){
   const r=await fetch('/api/me'); const d=await r.json(); me=d.user; renderAuth(); updWa();
@@ -270,7 +305,7 @@ function renderAuth(){
   const a=$('#authArea');
   if(me){
     a.innerHTML='<div class="userchip"><span>👋 '+me.name+'</span><span class="badge '+me.plan+'">'+me.plan.toUpperCase()+'</span><span class="mut">'+me.id+'</span><button class="authbtn" id="logoutBtn">Logout</button></div>';
-    $('#logoutBtn').onclick=async()=>{await fetch('/api/logout',{method:'POST'}); me=null; renderAuth(); updWa();};
+    $('#logoutBtn').onclick=async()=>{await fetch('/api/logout',{method:'POST'}); me=null; selPlan=null; renderAuth(); updWa();};
   }else{
     a.innerHTML='<button class="authbtn" id="loginBtn">Login</button> <button class="authbtn primary" id="signupBtn">Sign Up — Free</button>';
     $('#loginBtn').onclick=()=>showAuth('login');
