@@ -72,6 +72,36 @@ def home(request: Request):
     return resp
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy():
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — {BRAND}</title>
+<style>body{{margin:0;background:#07070d;color:#e8e8f2;font-family:'Segoe UI',system-ui,sans-serif}}
+main{{max-width:760px;margin:0 auto;padding:44px 24px 60px;line-height:1.75}}
+h1{{font-size:30px}}h2{{font-size:19px;margin-top:30px}}p,li{{color:#b9b9cc;font-size:15px}}
+a{{color:#22d3ee}}</style></head><body><main>
+<h1>Privacy Policy — {BRAND}</h1>
+<p>Last updated: October 2026</p>
+<h2>What we collect</h2>
+<ul>
+<li><b>Account information:</b> your name and email address when you sign up or sign in with Google. We use Google sign-in only to identify your account — we never see your Google password.</li>
+<li><b>Videos you upload:</b> the video/audio files you submit for translation and dubbing, and the outputs created from them (dubbed video, subtitles, audio).</li>
+<li><b>Basic usage data:</b> an anonymous visitor cookie used to count visits in our admin statistics. It does not identify you personally.</li>
+</ul>
+<h2>How we use it</h2>
+<p>Your uploads are processed only to provide the translation and dubbing service you requested. We do not sell your personal data, and we do not use your videos to train AI models.</p>
+<h2>Storage and deletion</h2>
+<p>Uploaded files and generated outputs are stored on our server so you can download them. Files may be removed during routine cleanup. If you want your account or files deleted sooner, contact us and we will remove them.</p>
+<h2>Payments</h2>
+<p>Pro subscriptions are currently paid manually (for example via Easypaisa). Payment screenshots you send us are used only to activate your Pro plan.</p>
+<h2>Contact</h2>
+<p>Questions about this policy: WhatsApp 0303-9929254.</p>
+<p><a href="/">← Back to {BRAND}</a></p>
+</main></body></html>""")
+
+
 @app.get("/api/config")
 def config():
     return {"brand": BRAND, "max_upload_mb": MAX_MB, "languages": language_list(),
