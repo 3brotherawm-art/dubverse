@@ -5,9 +5,10 @@ import shutil
 import threading
 import uuid
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
+from .admin import record_view, register_admin
 from .languages import LANGUAGES, language_list
 from .pipeline import process_job
 
@@ -20,6 +21,7 @@ ALLOWED = {".mp4", ".mov", ".mkv", ".webm", ".avi", ".mp3", ".wav", ".m4a", ".aa
 
 os.makedirs(JOBS, exist_ok=True)
 app = FastAPI(title=BRAND)
+register_admin(app, BASE, JOBS, BRAND)
 _jobs = {}
 _lock = threading.Lock()
 
@@ -57,9 +59,15 @@ def _run_job(job_id, job_dir, input_path, opts):
 
 
 @app.get("/", response_class=HTMLResponse)
-def home():
+def home(request: Request):
     with open(os.path.join(STATIC, "index.html"), encoding="utf-8") as f:
-        return f.read().replace("__BRAND__", BRAND)
+        page = f.read().replace("__BRAND__", BRAND)
+    resp = HTMLResponse(page)
+    new_visitor = record_view(request)
+    if new_visitor:
+        resp.set_cookie("dv_vid", new_visitor, max_age=365 * 24 * 3600,
+                        httponly=True, samesite="lax")
+    return resp
 
 
 @app.get("/api/config")
