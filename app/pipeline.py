@@ -26,16 +26,20 @@ import requests
 from .languages import LANGUAGES
 
 SR = 24000  # dub timeline sample rate
-WHISPER_LOCAL = os.path.expanduser("~/workspace/.venvs/models/faster-whisper-base")
+_MODELS_DIR = os.path.expanduser("~/workspace/.venvs/models")
 
 
 def _model_path():
+    # 'small' is the default: the 'base' model garbles Urdu/Hindi speech,
+    # which then poisons the translation. Small is far more accurate.
     env = os.environ.get("WHISPER_MODEL")
     if env:
         return env
-    if os.path.isdir(WHISPER_LOCAL):
-        return WHISPER_LOCAL
-    return "base"
+    for name in ("faster-whisper-small", "faster-whisper-base"):
+        path = os.path.join(_MODELS_DIR, name)
+        if os.path.isdir(path):
+            return path
+    return "small"
 
 
 def run(cmd):
@@ -64,6 +68,26 @@ def probe_has_video(path):
         return bool(json.loads(p.stdout).get("streams"))
     except Exception:
         return False
+
+
+def probe_height(path):
+    p = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=height", "-of", "json", path],
+        capture_output=True, text=True)
+    try:
+        return int(json.loads(p.stdout)["streams"][0]["height"])
+    except Exception:
+        return 0
+
+
+def _video_args(max_height, src_height):
+    """Free plan caps output at max_height (e.g. 1080p); Pro (None) keeps the
+    original stream untouched via stream copy."""
+    if max_height and src_height and src_height > max_height:
+        return ["-vf", f"scale=-2:{max_height}", "-c:v", "libx264",
+                "-preset", "veryfast", "-crf", "19"]
+    return ["-c:v", "copy"]
 
 
 def decode_audio(path, sr=SR):
@@ -306,7 +330,13 @@ def process_job(job_dir, input_path, opts, log, progress):
          "-vn", "-ac", "1", "-ar", "16000", audio_wav])
     total_dur = probe_duration(input_path)
     has_video = probe_has_video(input_path)
+    src_height = probe_height(input_path) if has_video else 0
+    max_height = opts.get("max_height")
     meta["duration_sec"] = round(total_dur, 1)
+    meta["input_height"] = src_height
+    meta["quality"] = ("full (Pro)" if not max_height else
+                        (f"max {max_height}p (Free)" if src_height > (max_height or 0)
+                         else "original"))
 
     progress(18, "Whisper se transcription ho rahi hai")
     segments, detected = transcribe(audio_wav, opts["source_lang"])
@@ -363,12 +393,19 @@ def process_job(job_dir, input_path, opts, log, progress):
     if opts["make_subs"] and has_video:
         progress(58, "Subtitled video ban raha hai")
         subbed = os.path.join(job_dir, "video_subtitled.mp4")
-        p = subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", input_path,
-             "-i", os.path.join(job_dir, "subtitles_translated.srt"),
-             "-map", "0", "-map", "1", "-c", "copy", "-c:s", "mov_text",
-             "-metadata:s:s:0", f"language={tgt_code[:3]}", subbed],
-            capture_output=True, text=True)
+        capped = bool(max_height and src_height > max_height)
+        sub_cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", input_path,
+                   "-i", os.path.join(job_dir, "subtitles_translated.srt"),
+                   "-map", "0", "-map", "1",
+                   "-c:s", "mov_text",
+                   "-metadata:s:s:0", f"language={tgt_code[:3]}"]
+        if capped:
+            sub_cmd += ["-vf", f"scale=-2:{max_height}", "-c:v", "libx264",
+                        "-preset", "veryfast", "-crf", "19", "-c:a", "copy"]
+        else:
+            sub_cmd += ["-c", "copy"]
+        sub_cmd.append(subbed)
+        p = subprocess.run(sub_cmd, capture_output=True, text=True)
         if p.returncode == 0:
             outputs["video_subtitled.mp4"] = "Video with translated subtitles"
         else:
@@ -418,16 +455,21 @@ def process_job(job_dir, input_path, opts, log, progress):
         if has_video:
             progress(88, "Dubbed video mux ho raha hai")
             dubbed_mp4 = os.path.join(job_dir, "video_dubbed.mp4")
+            vargs = _video_args(max_height, src_height)
+            capped = "-vf" in vargs
             p = subprocess.run(
                 ["ffmpeg", "-y", "-loglevel", "error", "-i", input_path,
                  "-i", dubbed_wav, "-map", "0:v:0", "-map", "1:a:0",
-                 "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", dubbed_mp4],
+                 *vargs, "-c:a", "aac", "-b:a", "160k", dubbed_mp4],
                 capture_output=True, text=True)
-            if p.returncode != 0:  # codec not mp4-friendly -> re-encode video
+            if p.returncode != 0 and not capped:
+                # codec not mp4-friendly -> re-encode video (keeping any cap)
+                fb = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20"]
+                if max_height and src_height > max_height:
+                    fb = ["-vf", f"scale=-2:{max_height}"] + fb
                 run(["ffmpeg", "-y", "-loglevel", "error", "-i", input_path,
                      "-i", dubbed_wav, "-map", "0:v:0", "-map", "1:a:0",
-                     "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                     "-c:a", "aac", "-b:a", "160k", dubbed_mp4])
+                     *fb, "-c:a", "aac", "-b:a", "160k", dubbed_mp4])
             outputs["video_dubbed.mp4"] = "Dubbed video (MP4)"
 
     progress(96, "Download package tayyar ho raha hai")

@@ -185,6 +185,28 @@ def register_admin(app, base_dir, jobs_dir, brand):
             visitors = len(s["visitors"])
             by_day = dict(s["views_by_day"])
         jobs = _jobs_summary(jobs_dir)
+        from . import accounts as _acc
+        all_users = _acc.list_users()
+        pro_count = sum(1 for u in all_users if _acc.is_pro(u))
+        user_rows = ""
+        for u in all_users[-30:][::-1]:
+            pro = _acc.is_pro(u)
+            until = ("—" if not pro else
+                     ("Lifetime" if not u.get("pro_until") else
+                      datetime.fromtimestamp(u["pro_until"], timezone.utc).strftime("%d %b %Y")))
+            plan = "<span class='pill done'>PRO</span>" if pro else "<span class='pill'>FREE</span>"
+            btns = "".join(
+                f"<button name='months' value='{m}' style='width:auto;padding:5px 10px;font-size:12px;margin-right:4px'>Pro {lbl}</button>"
+                for m, lbl in ((1, "1M"), (6, "6M"), (12, "1Y")))
+            if pro:
+                btns += "<button name='months' value='0' style='width:auto;padding:5px 10px;font-size:12px;background:#3a2b5c'>Free karo</button>"
+            user_rows += (
+                f"<tr><td>{html.escape(u['id'])}</td><td>{html.escape(u['name'])}</td>"
+                f"<td>{html.escape(u['email'])}</td><td>{plan}</td><td>{until}</td>"
+                f"<td><form method='post' action='/admin/users/set' style='display:inline'>"
+                f"<input type='hidden' name='user_id' value='{html.escape(u['id'])}'>{btns}</form></td></tr>")
+        if not user_rows:
+            user_rows = "<tr><td colspan='6' class='mut'>Abhi tak koi user register nahi hua.</td></tr>"
         today = _today()
         days = []
         for i in range(6, -1, -1):
@@ -213,7 +235,12 @@ def register_admin(app, base_dir, jobs_dir, brand):
           <div class="stat"><div class="lbl">Dub Jobs</div><div class="num">{jobs['total']}</div></div>
           <div class="stat"><div class="lbl">Completed</div><div class="num">{done}</div></div>
           <div class="stat"><div class="lbl">Success Rate</div><div class="num">{rate}</div></div>
+          <div class="stat"><div class="lbl">Registered Users</div><div class="num">{len(all_users)}</div></div>
+          <div class="stat"><div class="lbl">Pro Users</div><div class="num">{pro_count}</div></div>
         </div>
+        <div class="card"><h2>👥 Users — Pro activate / deactivate</h2>
+          <p class="mut">Customer payment confirm ho jaye to us ki ID ke samne wala button dabao — Pro foran active ho jayega (1M = 1 month, 6M = 6 months, 1Y = 1 year).</p>
+          <table><tr><th>ID</th><th>Name</th><th>Email</th><th>Plan</th><th>Pro Until</th><th>Action</th></tr>{user_rows}</table></div>
         <div class="card"><h2>📈 Pichle 7 din ke views</h2>
           <table><tr><th>Din</th><th></th><th>Views</th></tr>{day_rows}</table></div>
         <div class="card"><h2>🎙️ Recent dub jobs</h2>
@@ -236,6 +263,18 @@ def register_admin(app, base_dir, jobs_dir, brand):
                 "<input type='password' name='password' placeholder='Admin password' autofocus>"
                 "<button type='submit'>Login</button></form></div></div>")
         return HTMLResponse(_page(f"{brand} Admin", body), status_code=401)
+
+    @app.post("/admin/users/set")
+    def admin_set_user(request: Request, user_id: str = Form(...),
+                       months: int = Form(...)):
+        if not authed(request):
+            return HTMLResponse("Unauthorized", status_code=401)
+        from . import accounts as _acc
+        if months <= 0:
+            _acc.set_free(user_id)
+        else:
+            _acc.set_pro(user_id, months)
+        return RedirectResponse("/admin", status_code=303)
 
     @app.get("/admin/logout")
     def admin_logout():
