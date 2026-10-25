@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: dubverse
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: BRAND_NAME
+        value: DubVerse
+      - key: WHISPER_MODEL
+        value: base
+      - key: MAX_UPLOAD_MB
+        value: "500"
