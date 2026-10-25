@@ -40,6 +40,15 @@
   .dl a:hover{border-color:var(--acc)}
   .dl a.zip{grid-column:1/-1;background:linear-gradient(90deg,var(--acc),var(--acc2));font-weight:700;border:0}
   .err{color:var(--err)}footer{max-width:1060px;margin:0 auto;padding:0 26px 30px;color:var(--mut);font-size:12.5px;text-align:center}
+  footer a{color:var(--mut)}footer a:hover{color:var(--acc2)}
+  .strip{max-width:1060px;margin:6px auto 4px;padding:0 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.strip{grid-template-columns:1fr}}
+  .step3{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:15px 17px;display:flex;gap:13px;align-items:flex-start}
+  .step3 .n{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
+  .step3 b{display:block;font-size:14.5px;margin-bottom:2px}
+  .step3 span{color:var(--mut);font-size:12.5px;line-height:1.45}
+  .feats{max-width:1060px;margin:14px auto 0;padding:0 26px;display:flex;flex-wrap:wrap;gap:9px}
+  .feat{background:#120c2c;border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--txt)}
   .hidden{display:none}
 </style>
 </head>
@@ -51,6 +60,18 @@
     <div class="tag">Dub any video into any language — voice matched to the speaker</div>
   </div>
 </header>
+<div class="strip">
+  <div class="step3"><div class="n">1</div><div><b>Video upload karo</b><span>Koi bhi video — MP4, MOV, MKV ya audio file select karo.</span></div></div>
+  <div class="step3"><div class="n">2</div><div><b>Language chuno</b><span>40+ languages me translate — dubbing voice speaker se match hogi: ladka bole to male, ladki bole to female.</span></div></div>
+  <div class="step3"><div class="n">3</div><div><b>Download karo</b><span>Dubbed video, subtitled video, MP3 aur subtitles — video bilkul waisi ki waisi, sirf awaz dub hoti hai.</span></div></div>
+</div>
+<div class="feats">
+  <span class="feat">🌍 40+ Languages</span>
+  <span class="feat">🎯 Speaker-Matched Voice</span>
+  <span class="feat">🎬 Original Video Untouched</span>
+  <span class="feat">📝 Subtitles Included</span>
+  <span class="feat">⚡ Fast Download</span>
+</div>
 <main>
   <section class="card">
     <h2>1 — Video upload karo</h2>
@@ -93,7 +114,7 @@
     <div class="log" id="log">Job log yahan ayega…</div>
   </section>
 </main>
-<footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices</footer>
+<footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices &nbsp;•&nbsp; <a href="/admin">Admin Panel</a></footer>
 <script>
 const $=s=>document.querySelector(s);
 let fileObj=null, voiceMode='auto', jobId=null, timer=null;
