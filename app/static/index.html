@@ -5,92 +5,160 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__BRAND__ — Video Translator & AI Dubbing</title>
 <style>
-  :root{--bg:#0b0620;--panel:#171233;--panel2:#1f1845;--line:#2e2560;--txt:#f2efff;--mut:#a79fd0;--acc:#7c5cff;--acc2:#22d3ee;--ok:#34d399;--err:#f87171}
-  *{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(1100px 550px at 85% -10%,#3b2a86 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#0e3a4a 0%,transparent 55%),var(--bg);color:var(--txt);min-height:100vh}
-  header{display:flex;align-items:center;gap:14px;padding:20px 26px;max-width:1060px;margin:0 auto}
-  .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(124,92,255,.45)}
-  h1{font-size:26px;margin:0;letter-spacing:.3px}h1 span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .tag{color:var(--mut);font-size:13px;margin-top:2px}
-  main{max-width:1060px;margin:0 auto;padding:6px 26px 46px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media(max-width:820px){main{grid-template-columns:1fr}}
-  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:20px}
-  .card h2{margin:0 0 14px;font-size:17px}
-  .drop{border:2px dashed var(--line);border-radius:14px;padding:26px 14px;text-align:center;color:var(--mut);cursor:pointer;transition:.2s}
-  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(124,92,255,.08)}
-  .drop b{color:var(--txt);display:block;font-size:15px;margin-bottom:4px}
-  label{display:block;font-size:12.5px;color:var(--mut);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.6px}
-  select{width:100%;padding:11px 12px;border-radius:10px;background:#120c2c;color:var(--txt);border:1px solid var(--line);font-size:14.5px}
+  :root{
+    --bg:#07070d; --panel:rgba(255,255,255,.04); --panel2:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.09); --txt:#f4f4f8; --mut:#9d9db4;
+    --acc:#8b5cf6; --acc2:#22d3ee; --gold:#f59e0b; --gold2:#f97316;
+    --ok:#34d399; --err:#f87171; --field:rgba(255,255,255,.05);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:'Google Sans','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(900px 480px at 85% -5%,rgba(139,92,246,.28) 0%,transparent 60%),
+    radial-gradient(800px 480px at 8% 22%,rgba(34,211,238,.13) 0%,transparent 55%),
+    radial-gradient(1000px 620px at 50% 115%,rgba(139,92,246,.16) 0%,transparent 60%),var(--bg)}
+  body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;background:
+    radial-gradient(560px 260px at 70% 8%,rgba(34,211,238,.10),transparent 70%);
+    animation:drift 14s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  /* header */
+  header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(7,7,13,.72);border-bottom:1px solid var(--line)}
+  .hwrap{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:13px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 6px 22px rgba(139,92,246,.5)}
+  .bname{font-size:21px;font-weight:700;letter-spacing:.2px}
+  .bname span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* hero */
+  .hero{text-align:center;padding:64px 24px 10px;max-width:880px;margin:0 auto}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border:1px solid var(--line);border-radius:99px;background:var(--panel);font-size:12.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut)}
+  .eyebrow i{width:7px;height:7px;border-radius:99px;background:var(--ok);display:inline-block;box-shadow:0 0 10px var(--ok)}
+  .hero h1{font-size:clamp(40px,6.4vw,68px);line-height:1.06;font-weight:700;letter-spacing:-1.2px;margin:26px 0 16px}
+  .hero h1 .grad{background:linear-gradient(92deg,#a78bfa,#22d3ee 55%,#34d399);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--mut);font-size:clamp(15.5px,2vw,18px);line-height:1.65;max-width:640px;margin:0 auto}
+  .stats{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .stat{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:8px 18px;font-size:13.5px;color:var(--mut)}
+  .stat b{color:var(--txt);font-weight:700}
+  /* sections */
+  .seclabel{text-align:center;font-size:12.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--mut);margin:52px 0 6px}
+  .sectitle{text-align:center;font-size:clamp(26px,3.6vw,36px);font-weight:700;letter-spacing:-.6px;margin:0 0 8px}
+  .secsub{text-align:center;color:var(--mut);font-size:15px;max-width:640px;margin:0 auto;line-height:1.6}
+  /* cards */
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:26px;backdrop-filter:blur(8px)}
+  .card h2{margin:0 0 16px;font-size:18px;font-weight:650;letter-spacing:-.2px}
+  /* steps */
+  .strip{max-width:1120px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:860px){.strip{grid-template-columns:1fr}}
+  .step3{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;gap:14px;align-items:flex-start;transition:.25s}
+  .step3:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.45)}
+  .step3 .n{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;box-shadow:0 6px 16px rgba(139,92,246,.4)}
+  .step3 b{display:block;font-size:15.5px;margin-bottom:3px}
+  .step3 span{color:var(--mut);font-size:13px;line-height:1.55}
+  /* plans */
+  .plans{max-width:1120px;margin:0 auto;padding:0 24px}
+  .plangrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+  @media(max-width:860px){.plangrid{grid-template-columns:1fr}}
+  .plan{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:30px 24px;text-align:center;transition:.25s}
+  .plan:hover{transform:translateY(-4px)}
+  .plan.hot{border:1px solid transparent;background:linear-gradient(#16121f,#100d18) padding-box,linear-gradient(135deg,var(--gold),var(--gold2),var(--acc)) border-box;box-shadow:0 18px 44px rgba(245,158,11,.16)}
+  .plan.hot::before{content:'★ MOST POPULAR';position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold2));color:#fff;font-size:11px;font-weight:800;letter-spacing:1.2px;padding:5px 14px;border-radius:99px;white-space:nowrap}
+  .plan .pl{color:var(--mut);font-size:12.5px;text-transform:uppercase;letter-spacing:1.6px}
+  .plan .pr{font-size:38px;font-weight:800;margin:12px 0 2px;letter-spacing:-1px}
+  .plan .mrp{color:var(--mut);text-decoration:line-through;font-size:15px}
+  .plan .off{display:inline-block;margin-top:8px;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:4px 12px}
+  .upg{margin-top:20px;width:100%;padding:13px;border:none;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#fff;font-weight:700;font-size:15px;cursor:pointer;transition:.2s;box-shadow:0 8px 22px rgba(249,115,22,.3)}
+  .upg:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  /* payment */
+  .paybox{max-width:1120px;margin:0 auto;padding:0 24px}
+  .paybox .card{text-align:center;max-width:640px;margin:0 auto}
+  .wa{display:inline-block;margin-top:14px;background:#22c55e;color:#fff;font-weight:700;padding:14px 30px;border-radius:99px;text-decoration:none;font-size:15.5px;box-shadow:0 10px 26px rgba(34,197,94,.3);transition:.2s}
+  .wa:hover{filter:brightness(1.1)}
+  /* tool */
+  main{max-width:1120px;margin:0 auto;padding:0 24px 54px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){main{grid-template-columns:1fr}}
+  .drop{border:1.5px dashed rgba(255,255,255,.22);border-radius:18px;padding:32px 16px;text-align:center;color:var(--mut);cursor:pointer;transition:.2s;background:rgba(255,255,255,.02)}
+  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(139,92,246,.09)}
+  .drop b{color:var(--txt);display:block;font-size:16px;margin-bottom:5px}
+  label{display:block;font-size:12px;color:var(--mut);margin:18px 0 7px;text-transform:uppercase;letter-spacing:1.2px}
+  select{width:100%;padding:13px 14px;border-radius:12px;background:var(--field);color:var(--txt);border:1px solid var(--line);font-size:15px;outline:none}
+  select:focus{border-color:var(--acc)}
+  select option{background:#14101f;color:var(--txt)}
   .seg{display:flex;gap:8px}
-  .seg button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:#120c2c;color:var(--mut);cursor:pointer;font-size:13.5px}
-  .seg button.on{background:linear-gradient(135deg,var(--acc),#5a3ee0);color:#fff;border-color:transparent;font-weight:600}
-  .chk{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:14px;color:var(--txt);cursor:pointer}
-  .chk input{width:17px;height:17px;accent-color:var(--acc)}
-  .go{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 10px 26px rgba(124,92,255,.35)}
+  .seg button{flex:1;padding:12px 6px;border-radius:99px;border:1px solid var(--line);background:var(--field);color:var(--mut);cursor:pointer;font-size:14px;transition:.2s}
+  .seg button.on{background:linear-gradient(135deg,var(--acc),#6d3df0);color:#fff;border-color:transparent;font-weight:600;box-shadow:0 6px 18px rgba(139,92,246,.35)}
+  .chk{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:14.5px;color:var(--txt);cursor:pointer;text-transform:none;letter-spacing:0}
+  .chk input{width:18px;height:18px;accent-color:var(--acc)}
+  .go{width:100%;margin-top:24px;padding:16px;border:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;font-size:16.5px;font-weight:700;cursor:pointer;box-shadow:0 12px 30px rgba(139,92,246,.4);transition:.2s;letter-spacing:.2px}
+  .go:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08)}
   .go:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
-  .bar{height:10px;background:#120c2c;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
-  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s}
-  .step{font-size:14px;margin:10px 0 4px}.mut{color:var(--mut);font-size:12.5px}
-  .log{background:#0d0924;border:1px solid var(--line);border-radius:10px;padding:10px 12px;height:110px;overflow:auto;font:12px/1.55 Consolas,monospace;color:#c9c2f5;margin-top:12px;white-space:pre-wrap}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-  .chip{background:#120c2c;border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:12.5px;color:var(--mut)}
+  .bar{height:10px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .5s;border-radius:99px}
+  .step{font-size:14.5px;margin:12px 0 4px}.mut{color:var(--mut);font-size:13px;line-height:1.55}
+  .log{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:14px;padding:12px 14px;height:118px;overflow:auto;font:12px/1.6 Consolas,monospace;color:#cfc8f5;margin-top:14px;white-space:pre-wrap}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .chip{background:var(--field);border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:12.5px;color:var(--mut)}
   .chip b{color:var(--txt)}
-  video{width:100%;border-radius:12px;background:#000;margin-top:6px}
-  .dl{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
-  .dl a{display:block;text-align:center;padding:11px 8px;border-radius:10px;background:#120c2c;border:1px solid var(--line);color:var(--txt);text-decoration:none;font-size:13.5px}
+  video{width:100%;border-radius:16px;background:#000;margin-top:8px}
+  .dl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .dl a{display:block;text-align:center;padding:12px 8px;border-radius:12px;background:var(--field);border:1px solid var(--line);color:var(--txt);text-decoration:none;font-size:13.5px;transition:.2s}
   .dl a:hover{border-color:var(--acc)}
-  .dl a.zip{grid-column:1/-1;background:linear-gradient(90deg,var(--acc),var(--acc2));font-weight:700;border:0}
-  .err{color:var(--err)}footer{max-width:1060px;margin:0 auto;padding:0 26px 30px;color:var(--mut);font-size:12.5px;text-align:center}
+  .dl a.zip{grid-column:1/-1;background:linear-gradient(90deg,var(--acc),var(--acc2));font-weight:700;border:0;color:#fff}
+  .err{color:var(--err)}
+  footer{max-width:1120px;margin:0 auto;padding:6px 24px 38px;color:var(--mut);font-size:13px;text-align:center;line-height:1.7}
   footer a{color:var(--mut)}footer a:hover{color:var(--acc2)}
-  .strip{max-width:1060px;margin:6px auto 4px;padding:0 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  @media(max-width:820px){.strip{grid-template-columns:1fr}}
-  .step3{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:15px 17px;display:flex;gap:13px;align-items:flex-start}
-  .step3 .n{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
-  .step3 b{display:block;font-size:14.5px;margin-bottom:2px}
-  .step3 span{color:var(--mut);font-size:12.5px;line-height:1.45}
-  .feats{max-width:1060px;margin:14px auto 0;padding:0 26px;display:flex;flex-wrap:wrap;gap:9px}
-  .feat{background:#120c2c;border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--txt)}
-  .authbtn{padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:#120c2c;color:var(--txt);cursor:pointer;font-size:13.5px}
+  /* auth */
+  .authbtn{padding:10px 18px;border-radius:99px;border:1px solid var(--line);background:var(--field);color:var(--txt);cursor:pointer;font-size:14px;transition:.2s}
   .authbtn:hover{border-color:var(--acc)}
-  .authbtn.primary{background:linear-gradient(135deg,var(--acc),#5a3ee0);border-color:transparent;font-weight:600;color:#fff}
-  .userchip{display:flex;align-items:center;gap:9px;font-size:13.5px}
-  .badge{padding:2px 10px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.4px}
-  .badge.free{background:#2a2350;color:var(--mut)}
-  .badge.pro{background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff}
-  .authcard{max-width:1060px;margin:14px auto 0;padding:0 26px}
-  .authcard .card{max-width:430px}
-  .authcard input{width:100%;padding:11px 12px;border-radius:10px;background:#120c2c;color:var(--txt);border:1px solid var(--line);font-size:14.5px;margin-bottom:10px}
-  .plans{max-width:1060px;margin:20px auto 0;padding:0 26px}
-  .plans h2{font-size:20px;margin:0 0 4px}
-  .plangrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-  @media(max-width:820px){.plangrid{grid-template-columns:1fr}}
-  .plan{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center}
-  .plan.hot{border-color:#f59e0b;box-shadow:0 10px 30px rgba(245,158,11,.18)}
-  .plan .pl{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:.6px}
-  .plan .pr{font-size:30px;font-weight:800;margin:8px 0 2px}
-  .plan .mrp{color:var(--mut);text-decoration:line-through;font-size:14px}
-  .plan .off{display:inline-block;margin-top:6px;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:3px 11px}
-  .paybox{max-width:1060px;margin:16px auto 0;padding:0 26px}
-  .paybox .card{text-align:center}
-  .wa{display:inline-block;margin-top:12px;background:#22c55e;color:#fff;font-weight:700;padding:13px 26px;border-radius:12px;text-decoration:none;font-size:15.5px}
-  .upg{margin-top:14px;width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;font-weight:700;font-size:14.5px;cursor:pointer}
-  .upg:hover{filter:brightness(1.1)}
+  .authbtn.primary{background:#fff;color:#0b0b12;border-color:transparent;font-weight:700}
+  .authbtn.primary:hover{background:#e8e8f2}
+  .userchip{display:flex;align-items:center;gap:10px;font-size:14px;flex-wrap:wrap}
+  .badge{padding:3px 11px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.5px}
+  .badge.free{background:rgba(255,255,255,.1);color:var(--mut)}
+  .badge.pro{background:linear-gradient(90deg,var(--gold),var(--gold2));color:#fff}
+  .authcard{max-width:1120px;margin:22px auto 0;padding:0 24px}
+  .authcard .card{max-width:440px;margin:0 auto}
+  .authcard input{width:100%;padding:13px 14px;border-radius:12px;background:var(--field);color:var(--txt);border:1px solid var(--line);font-size:15px;margin-bottom:11px;outline:none}
+  .authcard input:focus{border-color:var(--acc)}
+  .gbtn{display:flex;align-items:center;justify-content:center;gap:11px;background:#fff;color:#1f1f1f;font-weight:700;font-size:15.5px;padding:13px;border-radius:99px;text-decoration:none;margin-bottom:14px;transition:.2s}
+  .gbtn:hover{background:#e8e8f2}
   .hidden{display:none}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">🎙️</div>
-  <div>
-    <h1>__BRAND__<span>.</span></h1>
-    <div class="tag">Dub any video into any language — voice matched to the speaker</div>
+  <div class="hwrap">
+    <div class="logo">🎙️</div>
+    <div class="bname">__BRAND__<span>.</span></div>
+    <div id="authArea" style="margin-left:auto"></div>
   </div>
-  <div id="authArea" style="margin-left:auto"></div>
 </header>
+
+<section class="hero">
+  <span class="eyebrow"><i></i> AI Video Dubbing Studio</span>
+  <h1>Any video. Any language.<br><span class="grad">Dubbed in one click.</span></h1>
+  <p>Upload a video — __BRAND__ translates it into 40+ languages and dubs it with an AI voice matched to the speaker. The picture stays exactly the same. Only the voice changes.</p>
+  <div class="stats">
+    <span class="stat">🌍 <b>40+</b> Languages</span>
+    <span class="stat">🎯 <b>Speaker-Matched</b> Voice</span>
+    <span class="stat">🎬 Video <b>Untouched</b></span>
+    <span class="stat">📝 Subtitles <b>Included</b></span>
+    <span class="stat">⚡ <b>Fast</b> Download</span>
+  </div>
+</section>
+
+<div class="seclabel">Kaise kaam karta hai</div>
+<h2 class="sectitle">Sirf 3 steps</h2>
+<div class="strip" style="margin-top:24px">
+  <div class="step3"><div class="n">1</div><div><b>Video upload karo</b><span>Koi bhi video — MP4, MOV, MKV ya audio file select karo.</span></div></div>
+  <div class="step3"><div class="n">2</div><div><b>Language chuno</b><span>40+ languages me translate — dubbing voice speaker se match hogi: ladka bole to male, ladki bole to female.</span></div></div>
+  <div class="step3"><div class="n">3</div><div><b>Download karo</b><span>Dubbed video, subtitled video, MP3 aur subtitles — video bilkul waisi ki waisi, sirf awaz dub hoti hai.</span></div></div>
+</div>
+
 <div class="authcard hidden" id="authCard">
   <div class="card">
     <h2 id="authTitle">Login</h2>
-    <a href="/auth/google" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;font-weight:700;font-size:15px;padding:12px;border-radius:10px;text-decoration:none;margin-bottom:12px"><span style="font-size:18px">G</span> Google / Gmail se Login karo</a>
-    <div class="mut" style="text-align:center;margin-bottom:12px">— ya email se —</div>
+    <a href="/auth/google" class="gbtn"><span style="font-weight:800;background:linear-gradient(90deg,#4285F4,#EA4335,#FBBC05,#34A853);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:19px">G</span> Google / Gmail se Login karo</a>
+    <div class="mut" style="text-align:center;margin-bottom:14px">— ya email se —</div>
     <input id="authName" placeholder="Full name (sirf Sign Up par)" class="hidden">
     <input id="authEmail" type="email" placeholder="Email">
     <input id="authPass" type="password" placeholder="Password (kam az kam 6 characters)">
@@ -99,44 +167,39 @@
     <div class="mut" style="margin-top:8px"><a href="#" id="authSwitch" style="color:var(--acc2)">Account nahi hai? Sign Up karo</a></div>
   </div>
 </div>
-<div class="strip">
-  <div class="step3"><div class="n">1</div><div><b>Video upload karo</b><span>Koi bhi video — MP4, MOV, MKV ya audio file select karo.</span></div></div>
-  <div class="step3"><div class="n">2</div><div><b>Language chuno</b><span>40+ languages me translate — dubbing voice speaker se match hogi: ladka bole to male, ladki bole to female.</span></div></div>
-  <div class="step3"><div class="n">3</div><div><b>Download karo</b><span>Dubbed video, subtitled video, MP3 aur subtitles — video bilkul waisi ki waisi, sirf awaz dub hoti hai.</span></div></div>
-</div>
-<div class="feats">
-  <span class="feat">🌍 40+ Languages</span>
-  <span class="feat">🎯 Speaker-Matched Voice</span>
-  <span class="feat">🎬 Original Video Untouched</span>
-  <span class="feat">📝 Subtitles Included</span>
-  <span class="feat">⚡ Fast Download</span>
-</div>
+
 <section class="plans">
-  <h2>⭐ Pro Plans — Full Quality</h2>
-  <div class="mut">Free plan: download quality <b style="color:var(--txt)">1080p tak</b> &nbsp;•&nbsp; Pro plan: <b style="color:var(--txt)">full original quality — 4K / 8K / 16K tak</b> (video jitni quality ki hogi, Pro me utni hi milegi, koi cap nahi)</div>
+  <div class="seclabel" style="margin-top:56px">DubVerse Pro</div>
+  <h2 class="sectitle">Full quality. <span style="background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent">No limits.</span></h2>
+  <p class="secsub">Free plan: download quality <b style="color:var(--txt)">1080p tak</b> &nbsp;•&nbsp; Pro plan: <b style="color:var(--txt)">full original quality — 4K / 8K / 16K tak</b> (video jitni quality ki hogi, Pro me utni hi milegi, koi cap nahi)</p>
   <div class="plangrid" id="planGrid"></div>
 </section>
-<div class="paybox" id="payBox">
+
+<div class="paybox" id="payBox" style="margin-top:26px">
   <div class="card">
-    <h2 style="margin:0 0 8px">💳 Payment — Easypaisa</h2>
-    <div style="font-size:15px;line-height:1.75">
+    <h2 style="margin:0 0 10px">💳 Payment — Easypaisa</h2>
+    <div style="font-size:15.5px;line-height:1.8">
       Selected plan: <b id="payPlan">upar kisi plan par "Upgrade" dabao</b><br>
-      Easypaisa number: <b id="epNum" style="color:var(--acc2);font-size:19px">—</b>
-      <button class="authbtn" id="copyEp" style="padding:5px 12px;font-size:12.5px">📋 Copy</button><br>
+      Easypaisa number: <b id="epNum" style="color:var(--acc2);font-size:20px">—</b>
+      <button class="authbtn" id="copyEp" style="padding:5px 13px;font-size:12.5px">📋 Copy</button><br>
       Tumhari ID: <b id="myId" style="color:var(--acc2)">(pehle Login / Sign Up karo)</b>
-      <button class="authbtn hidden" id="copyId" style="padding:5px 12px;font-size:12.5px">📋 Copy ID</button>
+      <button class="authbtn hidden" id="copyId" style="padding:5px 13px;font-size:12.5px">📋 Copy ID</button>
     </div>
-    <div class="mut" style="margin-top:10px">Steps: 1️⃣ Plan select karo &nbsp;2️⃣ Easypaisa par payment bhejo &nbsp;3️⃣ Screenshot + apni ID WhatsApp par bhejo — Pro foran active ho jayega ✅</div>
+    <div class="mut" style="margin-top:12px">Steps: 1️⃣ Plan select karo &nbsp;2️⃣ Easypaisa par payment bhejo &nbsp;3️⃣ Screenshot + apni ID WhatsApp par bhejo — Pro foran active ho jayega ✅</div>
     <a class="wa" id="waBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp par Screenshot + ID bhejo</a>
   </div>
 </div>
+
+<div class="seclabel">Dubbing Studio</div>
+<h2 class="sectitle">Apni video dub karo</h2>
+<p class="secsub" style="margin-bottom:26px">Speaker jaisa bolega, dubbing voice waisi hi milegi — automatic.</p>
 <main>
   <section class="card">
     <h2>1 — Video upload karo</h2>
     <div class="drop" id="drop">
       <b>📁 Video file yahan drop karo ya click karke select karo</b>
       MP4, MOV, MKV, WEBM, AVI ya audio file — max <span id="maxmb">500</span> MB
-      <div id="fname" style="margin-top:8px;color:var(--acc2)"></div>
+      <div id="fname" style="margin-top:9px;color:var(--acc2)"></div>
     </div>
     <input type="file" id="file" accept="video/*,audio/*,.mkv" class="hidden">
 
@@ -158,7 +221,7 @@
     <label class="chk"><input type="checkbox" id="bgOrig"> Original awaz halki si background me rakho</label>
 
     <button class="go" id="go">🚀 Start Dubbing</button>
-    <div class="mut" style="margin-top:10px">Processing time video ki length par depend karta hai. Page band mat karna jab tak job complete na ho.</div>
+    <div class="mut" style="margin-top:12px">Processing time video ki length par depend karta hai. Page band mat karna jab tak job complete na ho.</div>
   </section>
 
   <section class="card">
@@ -172,7 +235,7 @@
     <div class="log" id="log">Job log yahan ayega…</div>
   </section>
 </main>
-<footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices &nbsp;•&nbsp; <a href="/admin">Admin Panel</a></footer>
+<footer>__BRAND__ — Whisper speech recognition • Neural translation • Gender-matched AI voices<br><a href="/admin">Admin Panel</a></footer>
 <script>
 const $=s=>document.querySelector(s);
 let fileObj=null, voiceMode='auto', jobId=null, timer=null;
@@ -338,3 +401,4 @@ loadMe(); renderAuth();
 </script>
 </body>
 </html>
+
